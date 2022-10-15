@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Chat Room</title>
+	<script src="http://pv.sohu.com/cityjson?ie=utf-8"></script>  
+	<script type="text/javascript">  
+	// document.write(returnCitySN["cip"]+','+returnCitySN["cname"])
+	var ip_city = returnCitySN["cip"]+','+returnCitySN["cname"]
+	</script>
+<!-- 	<script language="javascript" type="text/javascript" src="http://fw.qq.com/ipaddress"> 
+	<script>document.write("你的IP是："+IPData[0]+"，来自："+IPData[2]); -->
+
+
+</head>
+<body>
+    <textarea id="chat-log" cols="100" rows="20"></textarea><br/>
+    <input id="chat-message-input" type="text" size="100"/><br/>
+    <input id="chat-message-submit" type="button" value="Send"/>
+</body>
+<script type="text/javascript" src="http://ip.chinaz.com/getip.aspx"></script>
+<script>
+    var roomName = {{ room_name_json }};
+
+    var chatSocket = new WebSocket(
+        'ws://' + window.location.host +
+        '/ws/chat/' + roomName + '/');
+
+    chatSocket.onmessage = function(e) {
+        var data = JSON.parse(e.data);
+        var message = data['message'];
+        document.querySelector('#chat-log').value += (message + '\n');
+    };
+
+    chatSocket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+    };
+
+    document.querySelector('#chat-message-input').focus();
+    document.querySelector('#chat-message-input').onkeyup = function(e) {
+        if (e.keyCode === 13) {  // enter, return
+            document.querySelector('#chat-message-submit').click();
+        }
+    };
+
+    document.querySelector('#chat-message-submit').onclick = function(e) {
+        var messageInputDom = document.querySelector('#chat-message-input');
+        var message = messageInputDom.value;
+        chatSocket.send(JSON.stringify({
+			'ip_city': ip_city,
+            'message': message
+        }));
+
+        messageInputDom.value = '';
+    };
+	
+	
+</script>
+</html>
